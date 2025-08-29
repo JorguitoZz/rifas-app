@@ -17,6 +17,7 @@ export default function CardRifa({ rifa, horizontal = false }) {
     img
   } = rifa
 
+  console.log('🧩 Rifa recibida en CardRifa:', rifa)
 
   const [showModal, setShowModal] = useState(false)
 

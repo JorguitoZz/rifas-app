@@ -37,9 +37,11 @@ export default function Rifas() {
         Rifas Disponibles
       </h2>
       <div className={isSingle ? "flex flex-col sm:flex-row gap-5 justify-center" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center"}>
-        {rifas.map((rifa) => (
-          <CardRifa key={rifa.id} rifa={rifa} horizontal={isSingle} />
-        ))}
+        {rifas.map((rifa) => {
+          console.log('📦 Rifa enviada a CardRifa:', rifa)
+          return <CardRifa key={rifa.id} rifa={rifa} horizontal={isSingle} />
+        })
+        }
       </div>
     </div>
   )
