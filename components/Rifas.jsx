@@ -6,13 +6,20 @@ export default function Rifas() {
   const [rifas, setRifas] = useState([])
 
   useEffect(() => {
-    const fetchRifas = async () => {
+  const fetchRifas = async () => {
+    try {
       const res = await fetch('/api/raffles')
       const data = await res.json()
+      console.log('🎯 Rifas recibidas:', data)
       setRifas(data)
+    } catch (error) {
+      console.error('❌ Error al cargar rifas:', error)
     }
-    fetchRifas()
-  }, [])
+  }
+
+  fetchRifas()
+}, [])
+
 
   if (rifas.length === 0) {
     return (
