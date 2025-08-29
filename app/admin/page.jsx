@@ -1,5 +1,5 @@
 'use client'
-
+import toast from 'react-hot-toast'
 import React, { useState, useEffect } from 'react'
 import {
   Button,
@@ -24,18 +24,23 @@ const Admin = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
 
   useEffect(() => {
-    const fetchRaffles = async () => {
-      try {
-        const res = await fetch('/api/raffles')
-        const data = await res.json()
-        setRaffles(data)
-      } catch (error) {
-        console.error('❌ Error al cargar rifas:', error)
-      }
-    }
+  const fetchRaffles = async () => {
+    try {
+      const res = await fetch('/api/raffles')
+      const data = await res.json()
+      setRaffles(data)
 
-    fetchRaffles()
-  }, [])
+      if (data.length === 0) {
+        toast('No hay rifas disponibles')
+      }
+    } catch (error) {
+      toast.error('Error al cargar rifas')
+    }
+  }
+
+  fetchRaffles()
+}, [])
+
 
   const handleConfirmPurchase = (purchaserId) => {
     setPurchasers((prev) =>
@@ -81,6 +86,7 @@ const Admin = () => {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    toast.success(`Archivo exportado para la rifa "${raffle.name}"`)
   }
 
   const getPaymentMethodColor = (method) => {
@@ -315,9 +321,22 @@ const Admin = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Button className="w-full" onClick={() => setSelectedRaffle(raffle)}>
+                  <Button
+                    className="w-full"
+                    onClick={async () => {
+                        const res = await fetch(`/api/raffles/${raffle.id}/purchasers`)
+                        const data = await res.json()
+                        setPurchasers(data)
+                        setSelectedRaffle(raffle)
+
+                        if (data.length === 0) {
+                        toast('Esta rifa aún no tiene compradores')
+                        }
+                    }}
+                    >
                     Ver Compradores
-                  </Button>
+                    </Button>
+
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -328,11 +347,20 @@ const Admin = () => {
                       Exportar
                     </Button>
                     <Button
-                      variant="destructive"
-                      size="sm"
-                      className="flex-1 flex items-center gap-1"
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1 flex items-center gap-1"
+                    onClick={async () => {
+                        const res = await fetch(`/api/raffles/${raffle.id}`, { method: 'DELETE' })
+                        if (res.ok) {
+                        setRaffles(prev => prev.filter(r => r.id !== raffle.id))
+                        toast.success(`Rifa "${raffle.name}" eliminada correctamente`)
+                        } else {
+                        toast.error('Error al eliminar la rifa')
+                        }
+                    }}
                     >
-                      Eliminar
+                    Eliminar
                     </Button>
                   </div>
                 </div>
