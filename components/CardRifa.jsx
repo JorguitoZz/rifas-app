@@ -6,22 +6,20 @@ import { useState } from 'react'
 
 export default function CardRifa({ rifa, horizontal = false }) {
   const {
-    nombre,
-    descripcion,
-    precio,
-    premio,
-    vendidos,
-    total,
-    disponibles,
-    fechaSorteo,
-    img
+    id,
+    name,
+    description,
+    ticket_price,
+    prize,
+    total_tickets,
+    available_tickets,
+    draw_date,
+    image_url
   } = rifa
 
-  console.log('🧩 Rifa recibida en CardRifa:', rifa)
-
+  const vendidos = total_tickets - available_tickets
+  const porcentaje = Math.round((vendidos / total_tickets) * 100)
   const [showModal, setShowModal] = useState(false)
-
-  const porcentaje = Math.round((vendidos / total) * 100)
 
   return (
     <>
@@ -32,11 +30,11 @@ export default function CardRifa({ rifa, horizontal = false }) {
         <picture className={`${horizontal ? 'md:w-1/2' : 'w-full'} relative`}>
           <img
             className="w-full object-cover h-full"
-            src={img}
-            alt={`Imagen de la rifa ${nombre}`}
+            src={image_url}
+            alt={`Imagen de la rifa ${name}`}
           />
           <div className="absolute top-4 right-4 bg-[#e9b30e] text-[#000] py-1 px-3 rounded-full text-sm font-semibold text-[20px]">
-            {precio}$
+            {ticket_price}$
           </div>
         </picture>
 
@@ -46,15 +44,15 @@ export default function CardRifa({ rifa, horizontal = false }) {
           } px-4 pt-5 pb-7 flex flex-col justify-between`}
         >
           <div>
-            <h3 className="text-[#e9b30e] text-[25px] font-semibold">{nombre}</h3>
+            <h3 className="text-[#e9b30e] text-[25px] font-semibold">{name}</h3>
 
             {/* Descripción */}
-            <p className="text-[#94a3b8] text-[18px] mb-2">{descripcion}</p>
+            <p className="text-[#94a3b8] text-[18px] mb-2">{description}</p>
 
             {/* Premio */}
             <div className="flex items-center gap-2 mt-2">
               <Ticket className="h-4 w-4 text-[#16a249]" />
-              <p className="text-[#16a249] text-[20px]">Premio: {premio}</p>
+              <p className="text-[#16a249] text-[20px]">Premio: {prize}</p>
             </div>
 
             {/* Boletos vendidos */}
@@ -62,7 +60,7 @@ export default function CardRifa({ rifa, horizontal = false }) {
               <div className="flex justify-between text-[#94a3b8] text-[16px]">
                 <p>Boletos vendidos</p>
                 <p>
-                  {vendidos}/{total}
+                  {vendidos}/{total_tickets}
                 </p>
               </div>
               <div className="w-full rounded bg-[#27272A]">
@@ -77,14 +75,16 @@ export default function CardRifa({ rifa, horizontal = false }) {
             <div className="flex items-center gap-2 text-sm mt-2">
               <Users className="h-4 w-4 text-[#94a3b8]" />
               <p className="text-[17px] text-[#94a3b8]">
-                {disponibles} boletos disponibles
+                {available_tickets} boletos disponibles
               </p>
             </div>
 
             {/* Fecha del sorteo */}
             <div className="flex items-center gap-2 text-sm mt-2">
               <Calendar className="h-4 w-4 text-[#94a3b8]" />
-              <p className="text-[#94a3b8] text-[17px]">Sorteo: {fechaSorteo}</p>
+              <p className="text-[#94a3b8] text-[17px]">
+                Sorteo: {new Date(draw_date).toLocaleDateString('es-VE')}
+              </p>
             </div>
           </div>
 
