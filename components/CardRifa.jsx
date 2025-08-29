@@ -1,4 +1,7 @@
 import { Calendar, Ticket, Users } from "lucide-react";
+import PurchaseModal from './PurchaseModal'
+import { useState } from "react";
+
 
 export default function CardRifa({
   nombre,
@@ -12,7 +15,9 @@ export default function CardRifa({
   img,
   horizontal = false, // Nuevo prop
 }) {
+  const [showModal, setShowModal] = useState(false)
   return (
+    <>
     <article
       className={`w-full bg-[#1e1e24] rounded-[10px] overflow-hidden border-2 border-[rgba(80,80,80,0.5)] 
         ${horizontal ? "flex flex-col md:flex-row" : "flex flex-col"}`}
@@ -65,10 +70,17 @@ export default function CardRifa({
           </div>
         </div>
 
-        <button className="mt-6 w-full bg-[#e9b30e] text-black font-semibold py-3 rounded hover:opacity-90 transition">
+        <button
+          className="mt-6 w-full bg-[#e9b30e] text-black font-semibold py-3 rounded hover:opacity-90 transition"
+          onClick={() => setShowModal(true)}
+        >
           Comprar boleto
         </button>
       </div>
     </article>
+    {showModal && (
+      <PurchaseModal rifa={rifa} onClose={() => setShowModal(false)} />
+    )}
+    </>
   );
 }
