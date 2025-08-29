@@ -1,19 +1,33 @@
 'use client'
 
-import { useState } from 'react'
-import { toast } from 'react-hot-toast'
+import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 
 export default function PurchaseModal({ rifa, onClose }) {
   const [form, setForm] = useState({
     fullName: '',
     cedula: '',
     email: '',
+    confirmEmail: '',
     phone: '',
-    method: '',
-    tickets: 1
+    methodId: '',
+    holderName: '',
+    reference: '',
+    tickets: 1,
+    captureUrl: ''
   })
 
   const [errors, setErrors] = useState({})
+  const [methods, setMethods] = useState([])
+
+  useEffect(() => {
+    const fetchMethods = async () => {
+      const res = await fetch('/api/payment-methods')
+      const data = await res.json()
+      setMethods(data)
+    }
+    fetchMethods()
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -25,8 +39,11 @@ export default function PurchaseModal({ rifa, onClose }) {
     if (!form.fullName.trim()) newErrors.fullName = 'Nombre requerido'
     if (!/^\d{6,10}$/.test(form.cedula)) newErrors.cedula = 'Cédula inválida'
     if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = 'Email inválido'
+    if (form.email !== form.confirmEmail) newErrors.confirmEmail = 'Emails no coinciden'
     if (!/^\d{10,15}$/.test(form.phone)) newErrors.phone = 'Teléfono inválido'
-    if (!form.method) newErrors.method = 'Selecciona un método de pago'
+    if (!form.methodId) newErrors.methodId = 'Selecciona método de pago'
+    if (!form.holderName.trim()) newErrors.holderName = 'Nombre del titular requerido'
+    if (!form.reference || form.reference.length < 6) newErrors.reference = 'Referencia inválida'
     if (form.tickets < 1 || form.tickets > rifa.disponibles) newErrors.tickets = 'Cantidad inválida'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -36,119 +53,84 @@ export default function PurchaseModal({ rifa, onClose }) {
     e.preventDefault()
     if (!validate()) return toast.error('Corrige los errores del formulario')
 
-    // Aquí iría el fetch o Server Action
     const res = await fetch('/api/purchase', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    fullName: form.fullName,
-    cedula: form.cedula,
-    email: form.email,
-    phone: form.phone,
-    method: form.method,
-    reference: form.reference,
-    tickets: form.tickets,
-    raffleId: rifa.id
-  })
-})
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fullName: form.fullName,
+        cedula: form.cedula,
+        email: form.email,
+        phone: form.phone,
+        payment_method_id: parseInt(form.methodId),
+        reference: form.reference,
+        tickets: parseInt(form.tickets),
+        raffleId: rifa.id,
+        payment_data: {
+          holderName: form.holderName,
+          captureUrl: form.captureUrl,
+          amount: form.tickets * rifa.precio
+        }
+      })
+    })
 
-if (res.ok) {
-  toast.success('Compra registrada correctamente')
-  onClose()
-} else {
-  toast.error('Error al registrar la compra')
-}
-
-    onClose()
+    if (res.ok) {
+      toast.success('Compra registrada correctamente')
+      onClose()
+    } else {
+      toast.error('Error al registrar la compra')
+    }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white text-black p-6 rounded-lg w-full max-w-xl">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+      <div className="bg-[#1e1e24] text-white p-6 rounded-lg w-full max-w-xl">
         <h2 className="text-xl font-bold mb-4">Comprar boleto – {rifa.nombre}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            name="fullName"
-            value={form.fullName}
-            onChange={handleChange}
-            placeholder="Nombre completo"
-            className="w-full p-2 border rounded"
-          />
+          <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Nombre completo" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
           {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
 
-          <input
-            name="cedula"
-            value={form.cedula}
-            onChange={handleChange}
-            placeholder="Cédula"
-            className="w-full p-2 border rounded"
-          />
+          <input name="cedula" value={form.cedula} onChange={handleChange} placeholder="Cédula" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
           {errors.cedula && <p className="text-red-500 text-sm">{errors.cedula}</p>}
 
-          <input
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="Email"
-            className="w-full p-2 border rounded"
-          />
+          <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
           {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
 
-          <input
-            name="phone"
-            value={form.phone}
-            onChange={handleChange}
-            placeholder="Teléfono"
-            className="w-full p-2 border rounded"
-          />
+          <input name="confirmEmail" value={form.confirmEmail} onChange={handleChange} placeholder="Confirmar Email" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
+          {errors.confirmEmail && <p className="text-red-500 text-sm">{errors.confirmEmail}</p>}
+
+          <input name="phone" value={form.phone} onChange={handleChange} placeholder="Teléfono" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
           {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
 
-          <select
-            name="method"
-            value={form.method}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          >
+          <select name="methodId" value={form.methodId} onChange={handleChange} className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded">
             <option value="">Selecciona método de pago</option>
-            <option value="zelle">Zelle</option>
-            <option value="binance">Binance</option>
-            <option value="pago-movil">Pago Móvil</option>
+            {methods.map((m) => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
           </select>
-          {errors.method && <p className="text-red-500 text-sm">{errors.method}</p>}
+          {errors.methodId && <p className="text-red-500 text-sm">{errors.methodId}</p>}
 
-          {/* Mostrar datos ficticios según método */}
-          {form.method && (
-            <div className="bg-gray-100 p-3 rounded text-sm">
-              {form.method === 'zelle' && (
-                <p>Email: transfers@rifas.com<br />Nombre: Rifas Company</p>
-              )}
-              {form.method === 'binance' && (
-                <p>Wallet ID: binance123456<br />Nombre: Rifas Company</p>
-              )}
-              {form.method === 'pago-movil' && (
-                <p>Teléfono: 0412-1234567<br />CI: 12345678<br />Banco: Venezuela</p>
-              )}
-            </div>
+          {/* Campos dinámicos */}
+          {form.methodId && (
+            <>
+              <input name="holderName" value={form.holderName} onChange={handleChange} placeholder="Nombre del titular" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
+              {errors.holderName && <p className="text-red-500 text-sm">{errors.holderName}</p>}
+
+              <input name="reference" value={form.reference} onChange={handleChange} placeholder="Referencia de pago" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
+              {errors.reference && <p className="text-red-500 text-sm">{errors.reference}</p>}
+
+              <input name="captureUrl" value={form.captureUrl} onChange={handleChange} placeholder="URL del comprobante (opcional)" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
+            </>
           )}
 
-          <input
-            name="tickets"
-            type="number"
-            value={form.tickets}
-            onChange={handleChange}
-            min={1}
-            max={rifa.disponibles}
-            placeholder="Cantidad de boletos"
-            className="w-full p-2 border rounded"
-          />
+          <input name="tickets" type="number" value={form.tickets} onChange={handleChange} min={1} max={rifa.disponibles} placeholder="Cantidad de boletos" className="w-full p-2 bg-[#2e2e34] border border-gray-600 rounded" />
           {errors.tickets && <p className="text-red-500 text-sm">{errors.tickets}</p>}
 
-          <button type="submit" className="bg-[#e9b30e] text-black font-bold w-full py-2 rounded">
+          <button type="submit" className="bg-[#e9b30e] text-black font-bold w-full py-2 rounded hover:opacity-90 transition">
             Confirmar compra
           </button>
         </form>
 
-        <button onClick={onClose} className="mt-4 text-sm text-gray-500 underline block mx-auto">
+        <button onClick={onClose} className="mt-4 text-sm text-gray-400 underline block mx-auto">
           Cancelar
         </button>
       </div>
