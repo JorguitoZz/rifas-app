@@ -17,6 +17,7 @@ export default function CardRifa({ rifa, horizontal = false }) {
     img
   } = rifa
 
+
   const [showModal, setShowModal] = useState(false)
 
   const porcentaje = Math.round((vendidos / total) * 100)

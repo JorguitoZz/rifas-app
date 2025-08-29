@@ -31,7 +31,7 @@ export default function Rifas() {
       </h2>
       <div className={isSingle ? "flex flex-col sm:flex-row gap-5 justify-center" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center"}>
         {rifas.map((rifa) => (
-          <CardRifa key={rifa.id} {...rifa} horizontal={isSingle} />
+          <CardRifa key={rifa.id} rifa={rifa} horizontal={isSingle} />
         ))}
       </div>
     </div>
