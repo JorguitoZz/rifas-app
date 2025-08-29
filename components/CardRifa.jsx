@@ -16,6 +16,19 @@ export default function CardRifa({
   horizontal = false, // Nuevo prop
 }) {
   const [showModal, setShowModal] = useState(false)
+ 
+ const rifa = {
+  nombre,
+  descripcion,
+  precio,
+  premio,
+  vendidos,
+  total,
+  disponibles,
+  fechaSorteo,
+  img
+}
+
   return (
     <>
     <article
@@ -81,6 +94,7 @@ export default function CardRifa({
     {showModal && (
       <PurchaseModal rifa={rifa} onClose={() => setShowModal(false)} />
     )}
+
     </>
   );
 }
